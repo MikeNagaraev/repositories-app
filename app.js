@@ -1,24 +1,31 @@
 var app = angular.module('flapperNews', ['ui.router']);
 
+
 app.controller('MainCtrl',
     function($scope, postsFactory) {
-        $scope.posts = postsFactory.posts;
-        $scope.addPost = function() {
-            postsFactory.addPost($scope.title, $scope.link)
-            $scope.title = ''
-            $scope.link = ''
-        }
-        $scope.incrementUpvotes = function(post) {
-            postsFactory.incrementUpvotes(post)
-        };
+        this.scope = $scope;
+        this.posts = postsFactory.posts;
+        this.addPost = function() {
+            postsFactory.addPost(this.title, this.link)
+            this.title = ''
+            this.link = ''
+        }.bind(this);
+        this.incrementUpvotes = function(post) {
+            this.scope.$applyAsync(function() { //digest async
+              postsFactory.incrementUpvotes(post);
+            })
+        }.bind(this);
     }
 );
 
-app.controller('PostsCtrl',
-    function($scope, $stateParams, postsFactory) {
-      $scope.post = postsFactory.posts[$stateParams.id];
-    }
-);
+// app.controller('PostsCtrl',
+//     function($scope, $stateParams, postsFactory) {
+//       $scope.post = postsFactory.posts[$stateParams.id];
+//       $scope.addComment() = function() {
+//         yst
+//       }
+//     }
+// );
 
 app.config([
     '$stateProvider',
@@ -29,17 +36,22 @@ app.config([
             .state('home', {
                 url: '/home',
                 templateUrl: '/home.html',
-                controller: 'MainCtrl'
+                controller: 'MainCtrl',
+                controllerAs: 'X'
             })
-            .state('posts', {
-                url: '/posts/{id}',
-                templateUrl: '/posts.html',
-                controller: 'PostsCtrl'
-            });
+        // .state('posts', {
+        //     url: '/posts/{id}',
+        //     templateUrl: '/posts.html',
+        //     controller: 'PostsCtrl'
+        // });
 
         $urlRouterProvider.otherwise('home');
     }
 ]);
+
+// app.factory('commentsFactory', function() {
+//
+// })
 
 app.factory('postsFactory', function() {
     var store = {}
