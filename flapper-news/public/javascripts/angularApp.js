@@ -49,7 +49,10 @@ app.controller('PostsCtrl', ['$scope', 'auth', 'post', 'postsFactory', 'comments
     }
 ]);
 
-app.controller('AuthCtrl', ['$scope', '$state', 'auth',
+app.controller('AuthCtrl', [
+    '$scope',
+    '$state',
+    'auth',
     function($scope, $state, auth) {
         $scope.user = {};
 
@@ -57,8 +60,8 @@ app.controller('AuthCtrl', ['$scope', '$state', 'auth',
             auth.register($scope.user).error(function(error) {
                 $scope.error = error;
             }).then(function() {
-                $state.go('home')
-            })
+                $state.go('home');
+            });
         };
 
         $scope.logIn = function() {
@@ -66,10 +69,10 @@ app.controller('AuthCtrl', ['$scope', '$state', 'auth',
                 $scope.error = error;
             }).then(function() {
                 $state.go('home');
-            })
-        }
+            });
+        };
     }
-]);
+])
 
 app.controller('NavCtrl', ['$scope', 'auth',
     function($scope, auth) {
@@ -91,8 +94,8 @@ app.config([
                 templateUrl: 'partials/home.html',
                 controller: 'MainCtrl',
                 resolve: {
-                    postPromise: ['postsFactory', function(posts) {
-                        return posts.getAll();
+                    postPromise: ['postsFactory', function(postsFactory) {
+                        return postsFactory.getAll();
                     }]
                 }
             })
@@ -101,8 +104,8 @@ app.config([
                 templateUrl: 'partials/posts.html',
                 controller: 'PostsCtrl',
                 resolve: {
-                    post: ['$stateParams', 'postsFactory', function($stateParams, posts) {
-                        return posts.get($stateParams.id);
+                    post: ['$stateParams', 'postsFactory', function($stateParams, postsFactory) {
+                        return postsFactory.get($stateParams.id);
                     }]
                 }
             })
@@ -117,8 +120,8 @@ app.config([
                 }]
             })
             .state('register', {
-                url: 'partials/register',
-                templateUrl: '/register.html',
+                url: '/register',
+                templateUrl: 'partials/registration.html',
                 controller: 'AuthCtrl',
                 onEnter: ['$state', 'auth', function($state, auth) {
                     if (auth.isLoggedIn()) {
@@ -132,7 +135,7 @@ app.config([
 ]);
 
 app.service('commentsService', ['$http', 'auth', function($http, auth) {
-    this.upvote = function(post, comment) {
+    this.upvote = function(post, auth, comment) {
         return $http.put('/posts/' + post._id + '/comments/' + comment._id + '/upvote', null, {
             headers: {
                 Authorization: 'Bearer ' + auth.getToken()
@@ -167,7 +170,7 @@ app.factory('auth', ['$http', '$window', function($http, $window) {
     }
 
     auth.currentUser = function() {
-        if (auth.isLoggedIn) {
+        if (auth.isLoggedIn()) {
             var token = auth.getToken();
             var payload = JSON.parse($window.atob(token.split('.')[1]));
 
@@ -194,7 +197,7 @@ app.factory('auth', ['$http', '$window', function($http, $window) {
     return auth;
 }])
 
-app.factory('postsFactory', 'auth', ['$http', function($http, auth) {
+app.factory('postsFactory', ['$http', 'auth', function($http, auth) {
     var store = {
         posts: []
     }
@@ -216,7 +219,7 @@ app.factory('postsFactory', 'auth', ['$http', function($http, auth) {
                 Authorization: 'Bearer ' + auth.getToken()
             }
         }).success(function(data) {
-            store.posts.push(data)
+            store.posts.push(data);
         })
     }
 
