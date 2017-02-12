@@ -13,7 +13,10 @@
         {{comment.body}}
     </div>
 </div>
-<form ng-submit="addComment()" class="form-posts">
+<div ng-hide="isLoggedIn()">
+    <h3>You need to <a href="/#/login">Log In</a> or <a href="/#/register">Register</a> before you can comment.</h3>
+</div>
+<form ng-submit="addComment()" ng-show="isLoggedIn()" style="margin-top:30px;" class="form-posts">
     <h3>Add comment</h3>
     <div class="form-group">
         <input type="text" class="form-control" placeholder="Title" ng-model="comment"></input>
